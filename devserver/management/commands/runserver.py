@@ -6,6 +6,7 @@ from django.core.handlers.wsgi import WSGIHandler
 
 import os
 import sys
+import subprocess
 import django
 import SocketServer
 from optparse import make_option
@@ -149,6 +150,14 @@ class Command(BaseCommand):
             if options['use_dozer']:
                 from dozer import Dozer
                 app = Dozer(app)
+
+            try:
+                setup_commands = getattr(settings, 'DEVSERVER_SETUP_COMMANDS', None)
+                if setup_commands is not None:
+                    for setup_command in setup_commands:
+                        subprocess.Popen(setup_command.split(' '))
+            except Exception as e:
+                print >> sys.stderr, "WARNING: problem executing setup commands: %s" % e 
 
             try:
                 if use_werkzeug:
